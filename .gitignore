@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / compiled files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Editor-specific files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store # macOS specific
+
+# Environment variables
+.env
+.env.*
+
+# Database files (if using SQLite)
+*.db
+*.sqlite3
+
+# Log files
+*.log
+
+# Test reports/coverage (if applicable)
+.pytest_cache/
+htmlcov/
+.coverage
+
+# Build artifacts
+dist/
+build/
+
+# Uploaded files or user-generated content (if applicable)
+/uploads/

@@ -1,0 +1,63 @@
+version: '3.9'
+
+services:
+  # ---------- AUTH SERVICE ----------
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8001:8000"
+    networks:
+      - backend
+
+  user_service:
+    build: ./user_service
+    container_name: user_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8002:8000"
+    networks:
+      - backend
+
+  chat_service:
+    build: ./chat_service
+    container_name: chat_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8003:8000"
+    networks:
+      - backend
+
+  # ---------- NGINX ----------
+  nginx:
+    image: nginx:latest
+    container_name: nginx_gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth_service
+      - user_service
+      - chat_service
+    networks:
+      - backend
+
+  api_gateway:
+    build: ./api_gateway
+    container_name: api_gateway
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth_service
+      - user_service
+      - chat_service
+    networks:
+      - backend
+
+
+# ---------- NETWORKS & VOLUMES ----------
+networks:
+  backend:
