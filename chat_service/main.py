@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 
-app = FastAPI()
+app = FastAPI(servers=[{"url": "/chat", "description": "Chat Service"}])
 
 
 @app.get("/")
