@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from api.user_router import router as user_router
 
 
-app = FastAPI(servers=[{"url": "/users", "description": "User Service"}])
+app = FastAPI()
 
+app.include_router(user_router)
 
-@app.get("/", tags=['user_service'])
+@app.get("/", tags=['Users'])
 async def read_root():
     return {"message": "Hello, I'm user service!"}
 

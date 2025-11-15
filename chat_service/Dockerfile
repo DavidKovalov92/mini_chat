@@ -1,5 +1,7 @@
-# Use an official Python base image
-FROM python:3.11-slim-buster
+FROM python:3.11-slim-bullseye
+
+RUN apt-get update && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory inside the container
 WORKDIR /app
