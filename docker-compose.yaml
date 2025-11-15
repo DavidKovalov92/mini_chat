@@ -8,6 +8,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8001
     ports:
       - "8001:8001"
+    volumes:
+      - ./auth_service:/app
     environment:
       DATABASE_URL: postgresql+asyncpg://admin:admin@auth_db:5432/auth_db
     depends_on:
@@ -21,6 +23,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8002
     ports:
       - "8002:8002"
+    volumes:
+      - ./user_service:/app
     environment:
       DATABASE_URL: postgresql+asyncpg://admin:admin@user_db:5432/user_db
     depends_on:
@@ -34,6 +38,8 @@ services:
     command: uvicorn main:app --host 0.0.0.0 --port 8003
     ports:
       - "8003:8003"
+    volumes:
+      - ./chat_service:/app
     environment:
       DATABASE_URL: postgresql+asyncpg://admin:admin@chat_db:5432/chat_db
     depends_on:
@@ -50,6 +56,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -60,6 +68,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: user_db
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -70,6 +80,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: chat_db
+    volumes:
+      - chat_db_data:/var/lib/postgresql/data
     networks:
       - backend
 
@@ -107,3 +119,8 @@ services:
 
 networks:
   backend:
+
+volumes:
+  auth_db_data: {}
+  user_db_data: {}
+  chat_db_data: {}
