@@ -4,23 +4,22 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 # ----------------------------------------------------
 # 1. НАШИ ИМПОРТЫ
 # ----------------------------------------------------
 # Добавляем импорт настроек из нашего приложения
-from app.core.config import settings
+from core.config import settings
 
 # Добавляем импорт Base из нашего приложения
 # Alembic будет использовать Base.metadata для поиска моделей
-from app.models.base import Base
+from models.base import Base
 
 # !!! ВАЖНО !!!
 # Когда у вас появятся модели (например, User),
 # импортируйте их ЗДЕСЬ. Это нужно, чтобы
 # Base.metadata "узнал" о них.
 #
-# from app.models.user import User
+from models.user import User
 # from app.models.item import Item
 # ----------------------------------------------------
 
