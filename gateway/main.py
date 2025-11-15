@@ -6,16 +6,14 @@ import os
 import time
 from contextlib import asynccontextmanager
 
-auth_service = os.getenv("AUTH_SERVICE_URL", "localhost")
-user_service = os.getenv("USER_SERVICE_URL", "localhost")
-chat_service = os.getenv("CHAT_SERVICE_URL", "localhost")
-
-
+auth_service_url = os.getenv("AUTH_SERVICE_URL", "http://localhost:8001")
+user_service_url = os.getenv("USER_SERVICE_URL", "http://localhost:8002")
+chat_service_url = os.getenv("CHAT_SERVICE_URL", "http://localhost:8003")
 
 SERVICES = {
-    "auth_service": f"http://{auth_service}:8001",
-    "user_service": f"http://{user_service}:8002",
-    "chat_service": f"http://{chat_service}:8003"
+    "auth_service": auth_service_url,
+    "user_service": user_service_url,
+    "chat_service": chat_service_url
 }
 
 @asynccontextmanager
@@ -80,7 +78,11 @@ async def forward_request(service_url: str, method: str, path: str, body=None, h
 
 app = FastAPI(lifespan=lifespan)
 
-@app.api_route("/{service}/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route(
+    "/{service}/{path:path}", 
+    methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    operation_id="proxy_request" 
+)
 async def gateway(service: str, path: str, request: Request):
     if service not in SERVICES:
         raise HTTPException(status_code=404, detail="Service not found")
