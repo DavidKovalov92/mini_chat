@@ -5,7 +5,7 @@ services:
   auth_service:
     build: ./auth_service
     container_name: auth_service
-    command: uvicorn main:app --host 0.0.0.0 --port 8001
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
     ports:
       - "8001:8001"
     volumes:
@@ -26,7 +26,7 @@ services:
   user_service:
     build: ./user_service
     container_name: user_service
-    command: uvicorn main:app --host 0.0.0.0 --port 8002
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
     ports:
       - "8002:8002"
     volumes:
@@ -47,7 +47,7 @@ services:
   chat_service:
     build: ./chat_service
     container_name: chat_service
-    command: uvicorn main:app --host 0.0.0.0 --port 8003
+    command: uvicorn main:app --host 0.0.0.0 --port 8003 --reload
     ports:
       - "8003:8003"
     volumes:
@@ -67,18 +67,6 @@ services:
 
 
   # ----------- DATABASES -----------
-  auth_db:
-    image: postgres:16
-    container_name: auth_db
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: auth_db
-    volumes:
-      - auth_db_data:/var/lib/postgresql/data
-    networks:
-      - backend
-
   user_db:
     image: postgres:16
     container_name: user_db
@@ -88,6 +76,21 @@ services:
       POSTGRES_DB: user_db
     volumes:
       - user_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+  auth_db:
+    image: postgres:16
+    container_name: auth_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
     networks:
       - backend
 
@@ -100,6 +103,8 @@ services:
       POSTGRES_DB: chat_db
     volumes:
       - chat_db_data:/var/lib/postgresql/data
+    ports:
+    - "5435:5432"
     networks:
       - backend
 
