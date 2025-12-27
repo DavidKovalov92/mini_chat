@@ -13,6 +13,7 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://admin:admin@auth_db:5432/auth_db
       USER_SERVICE_URL: http://user_service:8002
+      PYTHONUNBUFFERED: 1
     depends_on:
       auth_db:
         condition: service_healthy
