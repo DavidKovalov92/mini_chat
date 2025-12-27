@@ -1,0 +1,15 @@
+# auth_service/requirements.txt
+fastapi
+uvicorn[standard]
+sqlalchemy[asyncio]
+asyncpg
+psycopg2-binary
+alembic
+pydantic-settings
+httpx
+
+# --- 👇 ВОТ ОНИ 👇 ---
+passlib
+argon2-cffi
+python-jose[cryptography]
+email-validator

@@ -1,0 +1,188 @@
+version: '3.9'
+
+services:
+  # ----------- SERVICES -----------
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./auth_service:/app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:admin@auth_db:5432/auth_db
+      USER_SERVICE_URL: http://user_service:8002
+    depends_on:
+      auth_db:
+        condition: service_healthy
+      user_service:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s 
+
+  user_service:
+    build: ./user_service
+    container_name: user_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8002 --reload
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./user_service:/app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:admin@user_db:5432/user_db
+    depends_on:
+      - user_db
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  chat_service:
+    build: ./chat_service
+    container_name: chat_service
+    command: uvicorn main:app --host 0.0.0.0 --port 8003 --reload
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./chat_service:/app
+    environment:
+      DATABASE_URL: postgresql+asyncpg://admin:admin@chat_db:5432/chat_db
+    depends_on:
+      - chat_db
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+  # ----------- DATABASES -----------
+  user_db:
+    image: postgres:16
+    container_name: user_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: user_db
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d user_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  auth_db:
+    image: postgres:16
+    container_name: auth_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth_db
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d auth_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chat_db:
+    image: postgres:16
+    container_name: chat_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: chat_db
+    volumes:
+      - chat_db_data:/var/lib/postgresql/data
+    ports:
+    - "5435:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d chat_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+  # ----------- NGINX GATEWAY -----------
+  # nginx:
+  #   image: nginx:latest
+  #   container_name: nginx_gateway
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    
+  #   depends_on:
+  #     gateway:
+  #       condition: service_healthy
+  #     auth_service:
+  #       condition: service_healthy
+  #     user_service:
+  #       condition: service_healthy
+  #     chat_service:
+  #       condition: service_healthy
+  #   networks:
+  #     - backend
+
+  # ----------- API GATEWAY -----------
+  gateway:
+    build: ./gateway
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./gateway:/app 
+    environment:
+      AUTH_SERVICE_URL: http://auth_service:8001
+      USER_SERVICE_URL: http://user_service:8002
+      CHAT_SERVICE_URL: http://chat_service:8003
+    networks:
+      - backend 
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s 
+
+    depends_on:
+      auth_service:
+        condition: service_healthy
+      chat_service:
+        condition: service_healthy
+      user_service:
+        condition: service_healthy
+
+networks:
+  backend:
+
+volumes:
+  auth_db_data: {}
+  user_db_data: {}
+  chat_db_data: {}
