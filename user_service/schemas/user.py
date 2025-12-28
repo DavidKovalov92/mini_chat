@@ -25,3 +25,10 @@ class UserRead(BaseModel):
 
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    bio: str | None = None
+    avatar_url: str | None = None
