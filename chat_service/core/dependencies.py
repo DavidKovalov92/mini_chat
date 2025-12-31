@@ -39,3 +39,14 @@ async def get_current_user_id(
     except JWTError as e:
         print(f"DEBUG: JWT Decode Error: {e}")
         raise HTTPException(status_code=401, detail=str(e))
+    
+
+
+async def get_ws_user(token: str):
+    """Функція для перевірки токена у WebSocket"""
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        return uuid.UUID(user_id)
+    except (JWTError, ValueError):
+        return None
