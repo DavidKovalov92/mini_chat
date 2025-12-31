@@ -55,15 +55,39 @@ async def lifespan(app: FastAPI):
     def custom_openapi():
         if app.openapi_schema:
             return app.openapi_schema
+        
         openapi_schema = get_openapi(
             title="API Gateway",
             version="1.0.0",
             description="API Gateway for Microservices",
             routes=app.routes,
         )
+        
+        # Об'єднуємо компоненти
         openapi_schema["paths"] = combined_paths
         openapi_schema["components"] = combined_components
         openapi_schema["tags"] = combined_tags
+
+        # 1. Переконуємося, що securitySchemes існують
+        if "securitySchemes" not in openapi_schema["components"]:
+            openapi_schema["components"]["securitySchemes"] = {}
+        
+        openapi_schema["components"]["securitySchemes"]["BearerAuth"] = {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+        
+        # 2. Глобальна безпека
+        openapi_schema["security"] = [{"BearerAuth": []}]
+
+        # 3. КРИТИЧНО: Прив'язуємо безпеку до кожного доданого методу
+        for path in openapi_schema["paths"]:
+            for method in openapi_schema["paths"][path]:
+                # Додаємо авторизацію до кожного методу, якщо її там ще немає
+                if "security" not in openapi_schema["paths"][path][method]:
+                    openapi_schema["paths"][path][method]["security"] = [{"BearerAuth": []}]
+
         app.openapi_schema = openapi_schema
         return app.openapi_schema
 
@@ -76,7 +100,10 @@ async def forward_request(service_url: str, method: str, path: str, body=None, h
         response = await client.request(method, url, json=body, headers=headers, params=params)
         return response
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    swagger_ui_parameters={"persistAuthorization": True}
+)
 
 @app.api_route(
     "/{service}/{path:path}", 
@@ -84,6 +111,7 @@ app = FastAPI(lifespan=lifespan)
     operation_id="proxy_request" 
 )
 async def gateway(service: str, path: str, request: Request):
+    print(f"GATEWAY DEBUG: Browser Auth Header: {request.headers.get('authorization')}")
     if service not in SERVICES:
         raise HTTPException(status_code=404, detail="Service not found")
 
